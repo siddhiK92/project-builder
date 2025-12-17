@@ -1,25 +1,29 @@
 import Header from "@/components/Header";
-import HeroSection from "@/components/HeroSection";
 import CourseCard from "@/components/CourseCard";
 import { courses } from "@/data/courses";
 
-const Index = () => {
+const MyLearning = () => {
+  // Mock enrolled courses (first 2 courses)
+  const enrolledCourses = courses.slice(0, 2);
+
   return (
     <div className="min-h-screen bg-background">
-      <Header />
-      
-      <main>
-        <HeroSection />
-        
-        {/* Our Courses Section */}
-        <section className="py-16 px-4">
-          <div className="container">
-            <h2 className="text-3xl font-bold text-foreground text-center mb-12">
-              Our Courses
-            </h2>
-            
+      <Header isLoggedIn={true} userName="Student" />
+
+      <main className="pt-24 pb-16 px-4">
+        <div className="container">
+          <h1 className="text-3xl font-bold text-foreground mb-8">MY LEARNING</h1>
+          <h2 className="text-xl text-muted-foreground mb-6">My Learning</h2>
+
+          {enrolledCourses.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground text-lg mb-4">
+                You haven't enrolled in any courses yet.
+              </p>
+            </div>
+          ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {courses.slice(0, 4).map((course, index) => (
+              {enrolledCourses.map((course, index) => (
                 <div
                   key={course.id}
                   className="animate-fade-in"
@@ -36,11 +40,11 @@ const Index = () => {
                 </div>
               ))}
             </div>
-          </div>
-        </section>
+          )}
+        </div>
       </main>
     </div>
   );
 };
 
-export default Index;
+export default MyLearning;
