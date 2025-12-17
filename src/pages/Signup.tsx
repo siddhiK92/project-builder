@@ -1,21 +1,30 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { GraduationCap, Eye, EyeOff } from "lucide-react";
+import { GraduationCap, Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Signup = () => {
   const navigate = useNavigate();
+  const { signUp, user, loading: authLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
   });
+
+  useEffect(() => {
+    if (user && !authLoading) {
+      navigate("/");
+    }
+  }, [user, authLoading, navigate]);
 
   const validatePassword = (password: string) => {
     const hasUpperCase = /[A-Z]/.test(password);
@@ -32,7 +41,7 @@ const Signup = () => {
     };
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!formData.name || !formData.email || !formData.password) {
@@ -46,11 +55,32 @@ const Signup = () => {
       return;
     }
 
-    toast.success("Account created successfully!");
+    setLoading(true);
+    const { error } = await signUp(formData.email, formData.password, formData.name);
+    setLoading(false);
+
+    if (error) {
+      if (error.message.includes("User already registered")) {
+        toast.error("An account with this email already exists");
+      } else {
+        toast.error(error.message);
+      }
+      return;
+    }
+
+    toast.success("Account created! Please check your email to confirm your account.");
     navigate("/login");
   };
 
   const passwordCheck = validatePassword(formData.password);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -89,6 +119,7 @@ const Signup = () => {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="bg-secondary border-border"
+                  disabled={loading}
                 />
               </div>
 
@@ -101,6 +132,7 @@ const Signup = () => {
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="bg-secondary border-border"
+                  disabled={loading}
                 />
               </div>
 
@@ -114,6 +146,7 @@ const Signup = () => {
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     className="bg-secondary border-border pr-10"
+                    disabled={loading}
                   />
                   <Button
                     type="button"
@@ -147,8 +180,8 @@ const Signup = () => {
                 )}
               </div>
 
-              <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
-                Signup
+              <Button type="submit" className="w-full bg-primary hover:bg-primary/90" disabled={loading}>
+                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Signup"}
               </Button>
             </form>
           </CardContent>
