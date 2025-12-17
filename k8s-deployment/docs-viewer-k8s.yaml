@@ -1,0 +1,113 @@
+# -------------------------------
+# PersistentVolumeClaim (optional)
+# -------------------------------
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: docs-viewer-pvc
+  namespace: "2401093"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: docs-viewer-deployment
+  namespace: "2401093"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: docs-viewer
+  template:
+    metadata:
+      labels:
+        app: docs-viewer
+    spec:
+      automountServiceAccountToken: false
+      imagePullSecrets:
+        - name: nexus-secret
+
+      containers:
+        - name: docs-viewer
+          image: 127.0.0.1:30085/2401093-project/docs-viewer:latest
+          imagePullPolicy: Always
+
+          ports:
+            - containerPort: 80
+
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 10
+
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 30
+
+          # Optional – if you want to serve static files from PVC
+          volumeMounts:
+            - name: static-content
+              mountPath: /usr/share/nginx/html/static
+
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+              ephemeral-storage: "1Gi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+              ephemeral-storage: "2Gi"
+
+      volumes:
+        - name: static-content
+          persistentVolumeClaim:
+            claimName: docs-viewer-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: docs-viewer-service
+  namespace: "2401093"
+spec:
+  selector:
+    app: docs-viewer
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: docs-viewer-ingress
+  namespace: "2401093"
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: docs.imcc.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: docs-viewer-service
+                port:
+                  number: 80
