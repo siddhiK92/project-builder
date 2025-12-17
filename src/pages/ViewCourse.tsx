@@ -17,7 +17,7 @@ const ViewCourse = () => {
   if (!course) {
     return (
       <div className="min-h-screen bg-background">
-        <Header isLoggedIn={true} />
+        <Header />
         <div className="pt-24 pb-16 px-4 container">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-foreground mb-4">
@@ -41,7 +41,7 @@ const ViewCourse = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header isLoggedIn={true} userName="Student" />
+      <Header />
 
       <main className="pt-24 pb-16 px-4">
         <div className="container">

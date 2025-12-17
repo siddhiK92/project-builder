@@ -8,7 +8,7 @@ const MyLearning = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header isLoggedIn={true} userName="Student" />
+      <Header />
 
       <main className="pt-24 pb-16 px-4">
         <div className="container">

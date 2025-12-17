@@ -1,4 +1,4 @@
-import { GraduationCap, Moon, Sun } from "lucide-react";
+import { GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -9,15 +9,18 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuth } from "@/contexts/AuthContext";
 
-interface HeaderProps {
-  isLoggedIn?: boolean;
-  userRole?: "student" | "instructor";
-  userName?: string;
-}
-
-const Header = ({ isLoggedIn = false, userRole = "student", userName = "User" }: HeaderProps) => {
+const Header = () => {
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+
+  const userName = user?.user_metadata?.name || user?.email?.split("@")[0] || "User";
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
@@ -30,7 +33,7 @@ const Header = ({ isLoggedIn = false, userRole = "student", userName = "User" }:
         </Link>
 
         <div className="flex items-center gap-4">
-          {!isLoggedIn ? (
+          {!user ? (
             <>
               <Button variant="ghost" onClick={() => navigate("/login")}>
                 Login
@@ -58,19 +61,8 @@ const Header = ({ isLoggedIn = false, userRole = "student", userName = "User" }:
                 <DropdownMenuItem onClick={() => navigate("/my-learning")}>
                   My Learning
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/edit-profile")}>
-                  Edit Profile
-                </DropdownMenuItem>
-                {userRole === "instructor" && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => navigate("/dashboard")}>
-                      Dashboard
-                    </DropdownMenuItem>
-                  </>
-                )}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate("/")}>
+                <DropdownMenuItem onClick={handleSignOut}>
                   Log out
                 </DropdownMenuItem>
               </DropdownMenuContent>
